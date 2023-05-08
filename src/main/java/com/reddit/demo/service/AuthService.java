@@ -1,5 +1,7 @@
 package com.reddit.demo.service;
 
+import com.reddit.demo.dto.AuthenticationResponse;
+import com.reddit.demo.dto.LoginRequest;
 import com.reddit.demo.dto.RegisterRequest;
 import com.reddit.demo.exception.SpringRedditException;
 import com.reddit.demo.model.NotificationEmail;
@@ -7,11 +9,16 @@ import com.reddit.demo.model.User;
 import com.reddit.demo.model.VerificationToken;
 import com.reddit.demo.repository.UserRepository;
 import com.reddit.demo.repository.VerificationTokenRepository;
+import com.reddit.demo.security.JwtProvider;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +31,8 @@ public class AuthService {
   private final UserRepository userRepository;
   private final VerificationTokenRepository verificationTokenRepository;
   private final MailService mailService;
+  private final AuthenticationManager authenticationManager;
+  private final JwtProvider jwtProvider;
 
   @Transactional
   public void signup(RegisterRequest registerRequest) {
@@ -65,11 +74,22 @@ public class AuthService {
 
   @Transactional
   private void fetchUserAndEnable(VerificationToken verificationToken) {
-    Long userId = verificationToken.getUser().getUserId();
-    User user = userRepository.findById(userId)
+    String username = verificationToken.getUser().getUsername();
+    User user = userRepository.findByUsername(username)
         .orElseThrow(() -> new SpringRedditException(
             "User not found with name : " + verificationToken.getUser().getUsername()));
     user.setEnabled(true);
     userRepository.save(user);
+  }
+
+  public AuthenticationResponse login(LoginRequest loginRequest) {
+    Authentication authentication = authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+            loginRequest.getPassword()));
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    String token = jwtProvider.generateToken(authentication);
+    return AuthenticationResponse.builder().authenticationToken(token)
+        .username(loginRequest.getUsername()).build();
+
   }
 }
