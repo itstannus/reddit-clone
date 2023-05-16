@@ -24,10 +24,14 @@ public class JwtProvider {
     return generateTokenWithUserName(principal.getUsername());
   }
 
-  private String generateTokenWithUserName(String username) {
-    JwtClaimsSet claims = JwtClaimsSet.builder().issuer("self").issuedAt(Instant.now())
+  public String generateTokenWithUserName(String username) {
+    JwtClaimsSet claims = JwtClaimsSet.builder()
+        .issuer("self")
+        .issuedAt(Instant.now())
         .expiresAt(Instant.now().plusMillis(jwtExpirationInMillis))
-        .subject(username).claim("scope", "ROLE_USER").build();
+        .subject(username)
+        .claim("scope", "ROLE_USER")
+        .build();
 
     return this.jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
   }
