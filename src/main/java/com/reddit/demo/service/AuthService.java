@@ -1,5 +1,6 @@
 package com.reddit.demo.service;
 
+import com.reddit.demo.config.AppConfig;
 import com.reddit.demo.dto.AuthenticationResponse;
 import com.reddit.demo.dto.LoginRequest;
 import com.reddit.demo.dto.RefreshTokenRequest;
@@ -38,6 +39,7 @@ public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final JwtProvider jwtProvider;
   private final RefreshTokenService refreshTokenService;
+  private final AppConfig appConfig;
 
   @Transactional
   public void signup(RegisterRequest registerRequest) {
@@ -56,7 +58,7 @@ public class AuthService {
         new NotificationEmail("Please Activate your Account", user.getEmail(),
             "Thank you for signing up to Spring Reddit, "
                 + "please click on the below url to activate your account : "
-                + "http://localhost:8081/api/auth/accountVerification/" + token));
+                + appConfig.getUrl() + "/api/auth/accountVerification/" + token));
   }
 
   private String generateVerificationToken(User user) {
