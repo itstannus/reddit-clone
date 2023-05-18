@@ -56,11 +56,12 @@ public class SecurityConfig {
             .permitAll()
             .requestMatchers(HttpMethod.GET, "/api/posts/**")
             .permitAll()
-            .requestMatchers("/v2/api-docs",
+            .requestMatchers("/v3/api-docs/**",
                 "/configuration/ui",
                 "/swagger-resources/**",
                 "/configuration/security",
                 "/swagger-ui.html",
+                "/swagger-ui/**",
                 "/webjars/**")
             .permitAll()
             .anyRequest()
